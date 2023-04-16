@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const {
   handleErrors,
   throwNotFoundError,
+  throwError
 } = require('../utils/handleErrors');
 
 
@@ -18,7 +19,7 @@ module.exports.getUserDataById = (req, res) => {
     .then(user => {
       user.length !== 0
         ? res.send({ data: user })
-        : throwNotFoundError()
+        : throwError()
     })
     .catch((err) => handleErrors(err, res));
 }
@@ -46,7 +47,7 @@ module.exports.deleteUser = (req, res) => {
     .then(user => {
       user
         ? res.send({ data: user })
-        : throwNotFoundError()
+        : throwError()
     })
     .catch((err) => handleErrors(err, res));
 }

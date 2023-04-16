@@ -8,11 +8,7 @@ const {
 
 module.exports.getCards = (req, res) => {
   Card.find({})
-    .then(cards => {
-      const data = { data: cards }
-      if (cards.length === 0) data = { ...data, message: 'Нет созданных карточек' }
-      res.send(data)
-    })
+    .then(cards => res.send({ data: cards }))
     .catch((err) => handleErrors(err, res));
 }
 
