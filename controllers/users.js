@@ -17,9 +17,9 @@ module.exports.getUserDataById = (req, res) => {
 
   User.findById({ _id })
     .then(user => {
-      user.length !== 0
+      user
         ? res.send({ data: user })
-        : throwError()
+        : throwNotFoundError()
     })
     .catch((err) => handleErrors(err, res));
 }
