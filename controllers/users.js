@@ -47,7 +47,7 @@ module.exports.deleteUser = (req, res) => {
     .then(user => {
       user
         ? res.send({ data: user })
-        : throwError()
+        : throwNotFoundError()
     })
     .catch((err) => handleErrors(err, res));
 }
