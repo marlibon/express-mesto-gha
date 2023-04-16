@@ -26,11 +26,7 @@ module.exports.getUserDataById = (req, res) => {
 
 module.exports.getUsers = (req, res) => {
   User.find({})
-    .then(users => {
-      const data = { data: users }
-      if (users.length === 0) data = { ...data, message: 'Нет зарегистрированных пользователей' }
-      res.send(data)
-    })
+    .then(users => res.send({ data: users }))
     .catch((err) => handleErrors(err, res));
 }
 
