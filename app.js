@@ -5,7 +5,9 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const cors = require('cors')
 const { PORT = 3000, BASE_PATH } = process.env;
-
+const {
+  handleErrors,
+} = require('./utils/handleErrors');
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
@@ -32,8 +34,10 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use('/users', require('./routes/users'));
 app.use('/cards', require('./routes/cards'));
-
 app.use(express.static(path.join(__dirname, 'public')));
+app.use('*', function (req, res) {
+  handleErrors({ name: 'NotFoundError' }, res)
+})
 app.listen(PORT, () => {
   console.log('Ссылка на сервер:');
   console.log(BASE_PATH);

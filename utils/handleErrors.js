@@ -11,7 +11,6 @@ class NotFoundError extends Error {
 
 function handleErrors (error, response) {
   const { name } = error
-  // return response.send(error)
   switch (name) {
     case 'CastError':
     case 'ValidationError':
@@ -26,11 +25,15 @@ function handleErrors (error, response) {
 function throwNotFoundError () {
   throw new NotFoundError();
 }
+function throwError () {
+  throw new Error();
+}
 
 module.exports = {
   ERROR_INTERNAL_SERVER,
   ERROR_NOT_FOUND,
   ERROR_BAD_REQUEST,
   handleErrors,
-  throwNotFoundError
+  throwNotFoundError,
+  throwError
 };

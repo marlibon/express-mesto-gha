@@ -14,7 +14,7 @@ module.exports.getUserDataById = (req, res) => {
     return
   }
 
-  User.find({ _id })
+  User.findById({ _id })
     .then(user => {
       user.length !== 0
         ? res.send({ data: user })
@@ -64,7 +64,7 @@ module.exports.updateUserData = (req, res) => {
   User.findByIdAndUpdate(
     req.user._id,
     { ...data },
-    { new: true },
+    { new: true, runValidators: true },
   )
     .then(user => {
       user

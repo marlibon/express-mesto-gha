@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const {
   handleErrors,
   throwNotFoundError,
+  throwError
 } = require('../utils/handleErrors');
 
 module.exports.getCards = (req, res) => {
@@ -37,7 +38,7 @@ module.exports.deleteCard = (req, res) => {
     .then(card => {
       card
         ? res.send({ data: card })
-        : throwNotFoundError()
+        : throwError()
     })
     .catch((err) => handleErrors(err, res));
 }
