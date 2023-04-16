@@ -1,5 +1,10 @@
 const User = require('../models/user');
 const mongoose = require('mongoose');
+const {
+  handleErrors,
+  throwNotFoundError,
+} = require('../utils/handleErrors');
+
 
 module.exports.getUserDataById = (req, res) => {
   const _id = req.params.userId
@@ -13,9 +18,9 @@ module.exports.getUserDataById = (req, res) => {
     .then(user => {
       user.length !== 0
         ? res.send({ data: user })
-        : res.status(404).send({ message: 'Пользователь по указанному _id не найден' })
+        : throwNotFoundError()
     })
-    .catch((err) => res.status(500).send({ message: 'Произошла ошибка', error: err.message }));
+    .catch((err) => handleErrors(err, res));
 }
 
 module.exports.getUsers = (req, res) => {
@@ -25,18 +30,14 @@ module.exports.getUsers = (req, res) => {
       if (users.length === 0) data = { ...data, message: 'Нет зарегистрированных пользователей' }
       res.send(data)
     })
-    .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
+    .catch((err) => handleErrors(err, res));
 }
 
 module.exports.createUser = (req, res) => {
   const { name, about, avatar } = req.body;
-  if (!name || !about || !avatar) {
-    res.status(400).send({ message: 'Переданы некорректные данные при создании пользователя' })
-    return
-  }
   User.create({ name, about, avatar })
     .then(user => res.send({ data: user }))
-    .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
+    .catch((err) => handleErrors(err, res));
 }
 
 module.exports.deleteUser = (req, res) => {
@@ -45,9 +46,9 @@ module.exports.deleteUser = (req, res) => {
     .then(user => {
       user
         ? res.send({ data: user })
-        : res.status(400).send({ message: 'Пользователь не найден. Удаление не удалось' })
+        : throwNotFoundError()
     })
-    .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
+    .catch((err) => handleErrors(err, res));
 }
 
 module.exports.updateUserData = (req, res) => {
@@ -68,9 +69,9 @@ module.exports.updateUserData = (req, res) => {
     .then(user => {
       user
         ? res.send({ data: user })
-        : res.status(404).send({ message: 'Пользователь с указанным _id не найден.' })
+        : throwNotFoundError()
     })
-    .catch((err) => res.status(500).send({ message: 'Произошла ошибка', err }));
+    .catch((err) => handleErrors(err, res));
 }
 
 module.exports.updateUserAvatar = (req, res) => {
@@ -87,8 +88,8 @@ module.exports.updateUserAvatar = (req, res) => {
     .then(user => {
       user
         ? res.send({ data: user })
-        : res.status(404).send({ message: 'Пользователь с указанным _id не найден.' })
+        : throwNotFoundError()
     })
-    .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
+    .catch((err) => handleErrors(err, res));
 
 }

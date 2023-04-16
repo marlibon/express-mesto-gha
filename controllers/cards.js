@@ -1,5 +1,9 @@
 const Card = require('../models/card');
 const mongoose = require('mongoose');
+const {
+  handleErrors,
+  throwNotFoundError,
+} = require('../utils/handleErrors');
 
 module.exports.getCards = (req, res) => {
   Card.find({})
@@ -8,7 +12,7 @@ module.exports.getCards = (req, res) => {
       if (cards.length === 0) data = { ...data, message: 'Нет созданных карточек' }
       res.send(data)
     })
-    .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
+    .catch((err) => handleErrors(err, res));
 }
 
 module.exports.createCard = (req, res) => {
@@ -20,7 +24,7 @@ module.exports.createCard = (req, res) => {
   }
   Card.create({ name, link, owner })
     .then(card => res.send({ data: card }))
-    .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
+    .catch((err) => handleErrors(err, res));
 }
 
 module.exports.deleteCard = (req, res) => {
@@ -33,9 +37,9 @@ module.exports.deleteCard = (req, res) => {
     .then(card => {
       card
         ? res.send({ data: card })
-        : res.status(400).send({ message: 'Карточка с указанным _id не найдена' })
+        : throwNotFoundError()
     })
-    .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
+    .catch((err) => handleErrors(err, res));
 }
 
 module.exports.likeCard = (req, res) => {
@@ -51,12 +55,16 @@ module.exports.likeCard = (req, res) => {
     .then(card => {
       card
         ? res.send({ data: card })
-        : res.status(400).send({ message: 'Передан несуществующий _id карточки' })
+        : throwNotFoundError()
     })
-    .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
+    .catch((err) => handleErrors(err, res));
 }
 
 module.exports.dislikeCard = (req, res) => {
+  if (!mongoose.Types.ObjectId.isValid(req.params.cardId)) {
+    res.status(400).send({ message: 'Переданы некорректные данные для постановки/снятии лайка' })
+    return
+  }
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $pull: { likes: req.user._id } }, // убрать _id из массива
@@ -65,7 +73,7 @@ module.exports.dislikeCard = (req, res) => {
     .then(card => {
       card
         ? res.send({ data: card })
-        : res.status(400).send({ message: 'Передан несуществующий _id карточки' })
+        : throwNotFoundError()
     })
-    .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
+    .catch((err) => handleErrors(err, res));
 }
