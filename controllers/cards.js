@@ -1,36 +1,41 @@
 const Card = require('../models/card');
 const mongoose = require('mongoose');
 const {
+  HTTP_STATUS_BAD_REQUEST,
+  HTTP_STATUS_CREATED,
   handleErrors,
   throwNotFoundError,
-  throwError
 } = require('../utils/handleErrors');
 
+// получение всех карточек
 module.exports.getCards = (req, res) => {
   Card.find({})
+    .populate([
+      { path: 'likes', model: 'user' },
+      { path: 'owner', model: 'user' }
+    ])
     .then(cards => res.send({ data: cards }))
     .catch((err) => handleErrors(err, res));
 }
 
+// создание карточки
 module.exports.createCard = (req, res) => {
   const { name, link } = req.body;
   const owner = req.user
-  if (!name || !link || !owner) {
-    res.status(400).send({ message: 'Переданы некорректные данные при создании карточки' })
-    return
-  }
   Card.create({ name, link, owner })
-    .then(card => res.send({ data: card }))
+    .then(card => card.populate('owner'))
+    .then(card => res.status(HTTP_STATUS_CREATED).send({ data: card }))
     .catch((err) => handleErrors(err, res));
 }
 
+// удаление карточки
 module.exports.deleteCard = (req, res) => {
   const _id = req.params.cardId;
-  if (!mongoose.Types.ObjectId.isValid(req.user._id)) {
-    res.status(400).send({ message: 'Переданы некорректные данные для удаления карточки' })
-    return
-  }
+
   Card.findByIdAndDelete({ _id })
+    .populate([
+      { path: 'owner', model: 'user' }
+    ])
     .then(card => {
       card
         ? res.send({ data: card })
@@ -39,38 +44,39 @@ module.exports.deleteCard = (req, res) => {
     .catch((err) => handleErrors(err, res));
 }
 
+// вынос обработки ответа для лайков в отдельную функцию
+const handleResponseLikes = (data, res) => {
+  return data.populate([
+    { path: 'likes', model: 'user' },
+    { path: 'owner', model: 'user' }
+  ])
+    .then(card => {
+      card
+        ? res.send({ data: card })
+        : throwNotFoundError()
+    })
+    .catch((err) => handleErrors(err, res));
+}
+
+// постановка лайка
 module.exports.likeCard = (req, res) => {
-  if (!mongoose.Types.ObjectId.isValid(req.params.cardId)) {
-    res.status(400).send({ message: 'Переданы некорректные данные для постановки/снятии лайка' })
-    return
-  }
-  Card.findByIdAndUpdate(
+  return Card.findByIdAndUpdate(
     req.params.cardId,
     { $addToSet: { likes: req.user._id } }, // добавить _id в массив, если его там нет
     { new: true },
   )
-    .then(card => {
-      card
-        ? res.send({ data: card })
-        : throwNotFoundError()
+    .then(data => {
+      handleResponseLikes(data, res)
     })
-    .catch((err) => handleErrors(err, res));
 }
 
+// установка дизлайка
 module.exports.dislikeCard = (req, res) => {
-  if (!mongoose.Types.ObjectId.isValid(req.params.cardId)) {
-    res.status(400).send({ message: 'Переданы некорректные данные для постановки/снятии лайка' })
-    return
-  }
-  Card.findByIdAndUpdate(
+  return Card.findByIdAndUpdate(
     req.params.cardId,
     { $pull: { likes: req.user._id } }, // убрать _id из массива
     { new: true },
-  )
-    .then(card => {
-      card
-        ? res.send({ data: card })
-        : throwNotFoundError()
-    })
-    .catch((err) => handleErrors(err, res));
+  ).then(data => {
+    handleResponseLikes(data, res)
+  })
 }

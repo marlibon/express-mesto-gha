@@ -4,7 +4,6 @@ const { getUserDataById, getUsers, createUser, deleteUser, updateUserData, updat
 router.get('/:userId', getUserDataById);
 router.get('/', getUsers);
 router.post('/', createUser);
-router.delete('/:userId', deleteUser);
 router.patch('/me', updateUserData);
 router.patch('/me/avatar', updateUserAvatar);
 

@@ -1,7 +1,14 @@
-const ERROR_INTERNAL_SERVER = 500;
-const ERROR_NOT_FOUND = 404;
-const ERROR_BAD_REQUEST = 400;
-
+const mongoose = require('mongoose');
+const http2 = require('http2');
+const {
+  HTTP_STATUS_CREATED,
+  HTTP_STATUS_BAD_REQUEST,
+  HTTP_STATUS_UNAUTHORIZED, // на будущее)
+  HTTP_STATUS_NOT_FOUND,
+  HTTP_STATUS_INTERNAL_SERVER_ERROR,
+} = http2.constants;
+const URL_REGEXP = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/;
+const { CastError, ValidationError } = mongoose.Error
 class NotFoundError extends Error {
   constructor(message) {
     super(message);
@@ -10,18 +17,15 @@ class NotFoundError extends Error {
 }
 
 function handleErrors (error, response) {
-  const { name } = error
-  switch (name) {
-    case 'CastError':
-    case 'ValidationError':
-    case 'OtherError':
-      return response.status(ERROR_BAD_REQUEST).send({ message: 'Переданы некорректные данные' });
-    case 'NotFoundError':
-      return response.status(ERROR_NOT_FOUND).send({ message: 'Данные не найдены' });
-    default:
-      return response.status(ERROR_INTERNAL_SERVER).send({ message: `Произошла ошибка сервера ${ERROR_INTERNAL_SERVER}` });
+  if (error instanceof NotFoundError) {
+    return response.status(HTTP_STATUS_NOT_FOUND).send({ message: 'Данные не найдены' });
   }
+  if (error instanceof CastError || error instanceof ValidationError) {
+    return response.status(HTTP_STATUS_BAD_REQUEST).send({ message: 'Переданы некорректные данные' });
+  }
+  return response.status(HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: `Произошла ошибка сервера ${HTTP_STATUS_INTERNAL_SERVER_ERROR}` });
 }
+
 function throwNotFoundError () {
   throw new NotFoundError();
 }
@@ -30,10 +34,13 @@ function throwError () {
 }
 
 module.exports = {
-  ERROR_INTERNAL_SERVER,
-  ERROR_NOT_FOUND,
-  ERROR_BAD_REQUEST,
+  HTTP_STATUS_INTERNAL_SERVER_ERROR,
+  HTTP_STATUS_NOT_FOUND,
+  HTTP_STATUS_BAD_REQUEST,
+  HTTP_STATUS_CREATED,
   handleErrors,
   throwNotFoundError,
-  throwError
+  throwError,
+  URL_REGEXP,
+  NotFoundError
 };

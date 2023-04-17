@@ -1,4 +1,7 @@
 const mongoose = require('mongoose');
+const {
+  URL_REGEXP
+} = require('../utils/handleErrors');
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -16,6 +19,10 @@ const userSchema = new mongoose.Schema({
   avatar: {
     type: String,
     required: true,
+    validate: {
+      validator: (url) => URL_REGEXP.test(url),
+      message: ({ value }) => `${value} - URL указан не корректно`,
+    },
   }
 });
 
