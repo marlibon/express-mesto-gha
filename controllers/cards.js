@@ -68,6 +68,8 @@ module.exports.likeCard = (req, res) => {
     .then(data => {
       handleResponseLikes(data, res)
     })
+    .catch((err) => handleErrors(err, res));
+
 }
 
 // установка дизлайка
@@ -79,4 +81,6 @@ module.exports.dislikeCard = (req, res) => {
   ).then(data => {
     handleResponseLikes(data, res)
   })
+    .catch((err) => handleErrors(err, res));
+
 }
