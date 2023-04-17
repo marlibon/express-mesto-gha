@@ -44,12 +44,17 @@ module.exports.deleteCard = (req, res) => {
     .catch((err) => handleErrors(err, res));
 }
 
-// вынос обработки ответа для лайков в отдельную функцию
-const handleResponseLikes = (data, res) => {
-  return data.populate([
-    { path: 'likes', model: 'user' },
-    { path: 'owner', model: 'user' }
-  ])
+// постановка лайка
+module.exports.likeCard = (req, res) => {
+  Card.findByIdAndUpdate(
+    req.params.cardId,
+    { $addToSet: { likes: req.user._id } }, // добавить _id в массив, если его там нет
+    { new: true },
+  )
+    .populate([
+      { path: 'likes', model: 'user' },
+      { path: 'owner', model: 'user' }
+    ])
     .then(card => {
       card
         ? res.send({ data: card })
@@ -58,29 +63,21 @@ const handleResponseLikes = (data, res) => {
     .catch((err) => handleErrors(err, res));
 }
 
-// постановка лайка
-module.exports.likeCard = (req, res) => {
-  return Card.findByIdAndUpdate(
-    req.params.cardId,
-    { $addToSet: { likes: req.user._id } }, // добавить _id в массив, если его там нет
-    { new: true },
-  )
-    .then(data => {
-      handleResponseLikes(data, res)
-    })
-    .catch((err) => handleErrors(err, res));
-
-}
-
-// установка дизлайка
+// снятие лайка
 module.exports.dislikeCard = (req, res) => {
-  return Card.findByIdAndUpdate(
+  Card.findByIdAndUpdate(
     req.params.cardId,
     { $pull: { likes: req.user._id } }, // убрать _id из массива
     { new: true },
-  ).then(data => {
-    handleResponseLikes(data, res)
-  })
+  )
+    .populate([
+      { path: 'likes', model: 'user' },
+      { path: 'owner', model: 'user' }
+    ])
+    .then(card => {
+      card
+        ? res.send({ data: card })
+        : throwNotFoundError()
+    })
     .catch((err) => handleErrors(err, res));
-
 }
