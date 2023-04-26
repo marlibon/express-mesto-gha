@@ -25,6 +25,16 @@ module.exports.getUsers = (req, res) => {
     .then(users => res.send({ data: users }))
     .catch((err) => handleErrors(err, res));
 }
+module.exports.getUserDataById = (req, res) => {
+  const _id = req.params.userId
+  User.findById({ _id })
+    .then(user => {
+      user
+        ? res.send({ data: user })
+        : throwNotFoundError()
+    })
+    .catch((err) => handleErrors(err, res));
+}
 
 module.exports.createUser = (req, res) => {
   const { email, password, name, about, avatar } = req.body;

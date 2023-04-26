@@ -25,6 +25,12 @@ module.exports.validateUserData = celebrate({
   }),
 });
 
+module.exports.validateUserId = celebrate({
+  body: Joi.object().keys({
+    _id: Joi.string().required().hex().length(24),
+  }),
+});
+
 module.exports.validateUserAvatar = celebrate({
   body: Joi.object().keys({
     avatar: Joi.string().pattern(URL_REGEXP),
