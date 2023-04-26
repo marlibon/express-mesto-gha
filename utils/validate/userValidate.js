@@ -26,8 +26,8 @@ module.exports.validateUserData = celebrate({
 });
 
 module.exports.validateUserId = celebrate({
-  body: Joi.object().keys({
-    _id: Joi.string().required().hex().length(24),
+  params: Joi.object().keys({
+    userId: Joi.string().required().hex().length(24),
   }),
 });
 
