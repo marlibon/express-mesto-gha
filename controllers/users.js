@@ -1,15 +1,16 @@
+const bcrypt = require('bcryptjs');
 const User = require('../models/user');
+const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
 const {
   handleErrors,
-  HTTP_STATUS_BAD_REQUEST,
   HTTP_STATUS_CREATED,
   throwNotFoundError,
 } = require('../utils/handleErrors');
+const { JWT_CODE } = require('../utils/constants')
 
-
-module.exports.getUserDataById = (req, res) => {
-  const _id = req.params.userId
+module.exports.getCurrentUserData = (req, res) => {
+  const { _id } = req.user
   User.findById({ _id })
     .then(user => {
       user
@@ -26,11 +27,38 @@ module.exports.getUsers = (req, res) => {
 }
 
 module.exports.createUser = (req, res) => {
-  const { name, about, avatar } = req.body;
-  User.create({ name, about, avatar })
-    .then(user => res.status(HTTP_STATUS_CREATED).send({ data: user }))
-    .catch((err) => handleErrors(err, res));
+  const { email, password, name, about, avatar } = req.body;
+  bcrypt.hash(password, 10)
+    .then(hash => User.create({ email, password: hash, name, about, avatar })
+      .then(user => res.status(HTTP_STATUS_CREATED).send({ data: user }))
+      .catch((err) => handleErrors(err, res))
+    )
 }
+
+module.exports.logout = (_, res) => {
+  res.clearCookie('token').send({ message: 'Вы вышли из профиля' });
+};
+
+module.exports.login = (req, res) => {
+  const { email, password } = req.body;
+  User.findUserByCredentials(email, password)
+    .then((user) => {
+      const token = jwt.sign({ _id: user._id }, JWT_CODE, { expiresIn: '7d' });
+      res
+        .cookie('token', token, {
+          maxAge: 7 * 24 * 60 * 60 * 1000, // 7дней
+          sameSite: true,
+          httpOnly: true,
+        })
+        .send({ token });
+    })
+    .catch((err) => {
+      // ошибка аутентификации
+      res
+        .status(401)
+        .send({ message: err.message });
+    });
+};
 
 // функция для обновления данных пользователя
 const updateUser = (req, res, updateData) => {

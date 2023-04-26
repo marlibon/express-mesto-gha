@@ -5,6 +5,8 @@ const {
   HTTP_STATUS_CREATED,
   handleErrors,
   throwNotFoundError,
+  throwUnauthorizedError,
+  throwForbiddenError,
 } = require('../utils/handleErrors');
 
 // получение всех карточек
@@ -32,14 +34,21 @@ module.exports.createCard = (req, res) => {
 module.exports.deleteCard = (req, res) => {
   const _id = req.params.cardId;
 
-  Card.findByIdAndDelete({ _id })
+  Card.findOne({ _id })
     .populate([
       { path: 'owner', model: 'user' }
     ])
     .then(card => {
-      card
-        ? res.send({ data: card })
-        : throwNotFoundError()
+      if (!card) throwNotFoundError('Карточка уже удалена');
+
+      if (card.owner._id.toString() !== req.user._id.toString()) {
+        throwForbiddenError('У вас нет прав на удаление этой карточки')
+      }
+      Card.findByIdAndDelete({ _id })
+        .populate([
+          { path: 'owner', model: 'user' }
+        ])
+        .then(card => { res.send({ data: card }) })
     })
     .catch((err) => handleErrors(err, res));
 }
@@ -58,7 +67,7 @@ module.exports.likeCard = (req, res) => {
     .then(card => {
       card
         ? res.send({ data: card })
-        : throwNotFoundError()
+        : throwNotFoundError('Карточка не найдена')
     })
     .catch((err) => handleErrors(err, res));
 }
@@ -77,7 +86,7 @@ module.exports.dislikeCard = (req, res) => {
     .then(card => {
       card
         ? res.send({ data: card })
-        : throwNotFoundError()
+        : throwNotFoundError('Карточка не найдена')
     })
     .catch((err) => handleErrors(err, res));
 }

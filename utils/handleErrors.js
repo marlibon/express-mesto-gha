@@ -1,24 +1,42 @@
 const mongoose = require('mongoose');
 const http2 = require('http2');
 const {
-  HTTP_STATUS_CREATED,
-  HTTP_STATUS_BAD_REQUEST,
-  HTTP_STATUS_UNAUTHORIZED, // на будущее)
-  HTTP_STATUS_NOT_FOUND,
-  HTTP_STATUS_INTERNAL_SERVER_ERROR,
+  HTTP_STATUS_CREATED, // 201
+  HTTP_STATUS_BAD_REQUEST, // 400
+  HTTP_STATUS_UNAUTHORIZED, // 401
+  HTTP_STATUS_FORBIDDEN, // 403
+  HTTP_STATUS_NOT_FOUND, //404
+  HTTP_STATUS_CONFLICT, //409
+  HTTP_STATUS_INTERNAL_SERVER_ERROR, //500
 } = http2.constants;
-const URL_REGEXP = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/;
 const { CastError, ValidationError } = mongoose.Error
+
 class NotFoundError extends Error {
-  constructor(message) {
+  constructor(message = 'Данные не найдены') {
     super(message);
-    this.name = "NotFoundError";
+    this.statusCode = HTTP_STATUS_NOT_FOUND;
+  }
+}
+class UnauthorizedError extends Error {
+  constructor(message = 'Авторизация не удалась') {
+    super(message);
+    this.statusCode = HTTP_STATUS_UNAUTHORIZED;
+  }
+}
+class ForbiddenError extends Error {
+  constructor(message = 'Ошибка доступа') {
+    super(message);
+    this.statusCode = HTTP_STATUS_FORBIDDEN;
   }
 }
 
 function handleErrors (error, response) {
-  if (error instanceof NotFoundError) {
-    return response.status(HTTP_STATUS_NOT_FOUND).send({ message: 'Данные не найдены' });
+  if (error.code === 11000) {
+    return response.status(HTTP_STATUS_CONFLICT).send({ message: 'Пользователь с данным email уже существует' });
+  }
+  if (error instanceof NotFoundError || error instanceof UnauthorizedError || error instanceof ForbiddenError) {
+    const { message } = error;
+    return response.status(error.statusCode).send({ message });
   }
   if (error instanceof CastError || error instanceof ValidationError) {
     return response.status(HTTP_STATUS_BAD_REQUEST).send({ message: 'Переданы некорректные данные' });
@@ -26,9 +44,18 @@ function handleErrors (error, response) {
   return response.status(HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: `Произошла ошибка сервера ${HTTP_STATUS_INTERNAL_SERVER_ERROR}` });
 }
 
-function throwNotFoundError () {
-  throw new NotFoundError();
+function throwNotFoundError (message) {
+  throw new NotFoundError(message);
 }
+
+function throwUnauthorizedError (message) {
+  throw new UnauthorizedError(message);
+}
+
+function throwForbiddenError (message) {
+  throw new ForbiddenError(message);
+}
+
 function throwError () {
   throw new Error();
 }
@@ -40,7 +67,9 @@ module.exports = {
   HTTP_STATUS_CREATED,
   handleErrors,
   throwNotFoundError,
+  throwUnauthorizedError,
+  throwForbiddenError,
   throwError,
-  URL_REGEXP,
-  NotFoundError
+  NotFoundError,
+  UnauthorizedError,
 };
