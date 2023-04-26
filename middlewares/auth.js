@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const { JWT_CODE } = require('../utils/constants')
+const { JWT_CODE } = require('../utils/constants');
 
 module.exports = (req, res, next) => {
   const { token } = req.cookies;
@@ -20,5 +20,5 @@ module.exports = (req, res, next) => {
   }
 
   req.user = payload;
-  next();
+  return next();
 };

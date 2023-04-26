@@ -1,34 +1,31 @@
 const Card = require('../models/card');
-const mongoose = require('mongoose');
 const {
-  HTTP_STATUS_BAD_REQUEST,
   HTTP_STATUS_CREATED,
   handleErrors,
-  throwNotFoundError,
-  throwUnauthorizedError,
-  throwForbiddenError,
 } = require('../utils/handleErrors');
+const { ForbiddenError } = require('../errors/ForbiddenError');
+const { NotFoundError } = require('../errors/NotFoundError');
 
 // получение всех карточек
 module.exports.getCards = (req, res) => {
   Card.find({})
     .populate([
       { path: 'likes', model: 'user' },
-      { path: 'owner', model: 'user' }
+      { path: 'owner', model: 'user' },
     ])
-    .then(cards => res.send({ data: cards }))
+    .then((cards) => res.send({ data: cards }))
     .catch((err) => handleErrors(err, res));
-}
+};
 
 // создание карточки
 module.exports.createCard = (req, res) => {
   const { name, link } = req.body;
-  const owner = req.user
+  const owner = req.user;
   Card.create({ name, link, owner })
-    .then(card => card.populate('owner'))
-    .then(card => res.status(HTTP_STATUS_CREATED).send({ data: card }))
+    .then((card) => card.populate('owner'))
+    .then((card) => res.status(HTTP_STATUS_CREATED).send({ data: card }))
     .catch((err) => handleErrors(err, res));
-}
+};
 
 // удаление карточки
 module.exports.deleteCard = (req, res) => {
@@ -36,22 +33,23 @@ module.exports.deleteCard = (req, res) => {
 
   Card.findOne({ _id })
     .populate([
-      { path: 'owner', model: 'user' }
+      { path: 'owner', model: 'user' },
     ])
-    .then(card => {
-      if (!card) throwNotFoundError('Карточка уже удалена');
-
+    .then((card) => {
+      if (!card) {
+        throw new NotFoundError('Карточка уже удалена');
+      }
       if (card.owner._id.toString() !== req.user._id.toString()) {
-        throwForbiddenError('У вас нет прав на удаление этой карточки')
+        throw new ForbiddenError('У вас нет прав на удаление этой карточки');
       }
       Card.findByIdAndDelete({ _id })
         .populate([
-          { path: 'owner', model: 'user' }
+          { path: 'owner', model: 'user' },
         ])
-        .then(card => { res.send({ data: card }) })
+        .then((deletedCard) => { res.send({ data: deletedCard }); });
     })
     .catch((err) => handleErrors(err, res));
-}
+};
 
 // постановка лайка
 module.exports.likeCard = (req, res) => {
@@ -62,15 +60,17 @@ module.exports.likeCard = (req, res) => {
   )
     .populate([
       { path: 'likes', model: 'user' },
-      { path: 'owner', model: 'user' }
+      { path: 'owner', model: 'user' },
     ])
-    .then(card => {
-      card
-        ? res.send({ data: card })
-        : throwNotFoundError('Карточка не найдена')
+    .then((card) => {
+      if (card) {
+        res.send({ data: card });
+      } else {
+        throw new NotFoundError('Карточка не найдена');
+      }
     })
     .catch((err) => handleErrors(err, res));
-}
+};
 
 // снятие лайка
 module.exports.dislikeCard = (req, res) => {
@@ -81,12 +81,14 @@ module.exports.dislikeCard = (req, res) => {
   )
     .populate([
       { path: 'likes', model: 'user' },
-      { path: 'owner', model: 'user' }
+      { path: 'owner', model: 'user' },
     ])
-    .then(card => {
-      card
-        ? res.send({ data: card })
-        : throwNotFoundError('Карточка не найдена')
+    .then((card) => {
+      if (card) {
+        res.send({ data: card });
+      } else {
+        throw new NotFoundError('Карточка не найдена');
+      }
     })
     .catch((err) => handleErrors(err, res));
-}
+};

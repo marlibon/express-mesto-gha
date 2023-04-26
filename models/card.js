@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const {
-  URL_REGEXP
+  URL_REGEXP,
 } = require('../utils/constants');
 
 const cardSchema = new mongoose.Schema({
@@ -34,4 +34,4 @@ const cardSchema = new mongoose.Schema({
   },
 });
 
-module.exports = mongoose.model('card', cardSchema)
+module.exports = mongoose.model('card', cardSchema);

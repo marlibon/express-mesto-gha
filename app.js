@@ -1,31 +1,32 @@
 const path = require('path');
 const express = require('express');
+
 const app = express();
 const mongoose = require('mongoose');
-const cors = require('cors')
-const cookieParser = require('cookie-parser')
-const { PORT = 3000, BASE_PATH = 'https://localhost.ru' } = process.env;
-const routes = require('./routes/index');
+const cors = require('cors');
+const cookieParser = require('cookie-parser');
 const { errors } = require('celebrate');
+const { PORT, BASE_PATH, MONGODB_URI } = require('./config'); // переменные окружения
+const routes = require('./routes/index');
 
 // распарсим данные, которые пришли
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser())
-//подключаемся к БД
-mongoose.connect('mongodb://localhost:27017/mestodb', {
+app.use(cookieParser());
+// подключаемся к БД
+mongoose.connect(MONGODB_URI, {
   useNewUrlParser: true,
 })
   .then(() => console.log('DB is connected'))
-  .catch(err => console.log(err));
+  .catch((err) => console.log(err));
 
 // опции для заголовков. Разрешаем доступ с любого места и определяем доступные методы
 const corsOptions = {
-  "origin": "*",
-  "methods": "GET,HEAD,PUT,PATCH,POST,DELETE",
-  "preflightContinue": false,
-  "optionsSuccessStatus": 204
-}
+  origin: '*',
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  preflightContinue: false,
+  optionsSuccessStatus: 204,
+};
 app.use(cors(corsOptions));
 
 // настройка роутов

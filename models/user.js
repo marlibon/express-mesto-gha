@@ -3,7 +3,7 @@ const validator = require('validator');
 const mongoose = require('mongoose');
 
 const {
-  URL_REGEXP
+  URL_REGEXP,
 } = require('../utils/constants');
 
 const userSchema = new mongoose.Schema({
@@ -41,8 +41,8 @@ const userSchema = new mongoose.Schema({
       message: ({ value }) => `${value} - URL указан не корректно`,
     },
     default: 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
-  }
-}, { toJSON: { useProjection: true }, toObject: { useProjection: true }, });
+  },
+}, { toJSON: { useProjection: true }, toObject: { useProjection: true } });
 
 userSchema.statics.findUserByCredentials = function (email, password) {
   return this.findOne({ email }).select('+password')
@@ -60,4 +60,4 @@ userSchema.statics.findUserByCredentials = function (email, password) {
     });
 };
 
-module.exports = mongoose.model('user', userSchema)
+module.exports = mongoose.model('user', userSchema);
