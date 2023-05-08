@@ -8,11 +8,13 @@ const cookieParser = require('cookie-parser');
 const { errors } = require('celebrate');
 const { PORT, BASE_PATH, MONGODB_URI } = require('./config'); // переменные окружения
 const routes = require('./routes/index');
+const { requestLogger, errorLogger } = require('./middlewares/logger');
 
 // распарсим данные, которые пришли
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+
 // подключаемся к БД
 mongoose.connect(MONGODB_URI, {
   useNewUrlParser: true,
@@ -29,8 +31,14 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 
+// подключаем логгер запросов
+app.use(requestLogger);
+
 // настройка роутов
 app.use(routes);
+
+// подключаем логгер ошибок
+app.use(errorLogger);
 
 // обработка ошибок celebrate
 app.use(errors());
