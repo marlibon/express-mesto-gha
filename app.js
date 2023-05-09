@@ -22,7 +22,7 @@ mongoose.connect(MONGODB_URI, {
   .then(() => console.log('DB is connected'))
   .catch((err) => console.log(err));
 
-// опции для заголовков. Разрешаем доступ с любого места и определяем доступные методы
+// опции для заголовков. Разрешаем доступ с любого места и определяем доступные методы + заголовки
 const corsOptions = {
   origin: '*',
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',

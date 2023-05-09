@@ -13,7 +13,7 @@ module.exports.getCurrentUserData = (req, res) => {
   User.findById({ _id })
     .then((user) => {
       if (user) {
-        res.send({ data: user });
+        res.send(user);
       } else {
         throw new NotFoundError('Пользователь не найден');
       }
@@ -23,7 +23,7 @@ module.exports.getCurrentUserData = (req, res) => {
 
 module.exports.getUsers = (req, res) => {
   User.find({})
-    .then((users) => res.send({ data: users }))
+    .then((users) => res.send(users))
     .catch((err) => handleErrors(err, res));
 };
 module.exports.getUserDataById = (req, res) => {
@@ -31,7 +31,7 @@ module.exports.getUserDataById = (req, res) => {
   User.findById({ _id })
     .then((user) => {
       if (user) {
-        res.send({ data: user });
+        res.send(user);
       } else {
         throw new NotFoundError('Пользователь не найден');
       }
@@ -47,7 +47,7 @@ module.exports.createUser = (req, res) => {
     .then((hash) => User.create({
       email, password: hash, name, about, avatar,
     })
-      .then((user) => res.status(HTTP_STATUS_CREATED).send({ data: user }))
+      .then((user) => res.status(HTTP_STATUS_CREATED).send(user))
       .catch((err) => handleErrors(err, res)));
 };
 
@@ -85,7 +85,7 @@ const updateUser = (req, res, updateData) => {
   )
     .then((user) => {
       if (user) {
-        res.send({ data: user });
+        res.send(user);
       } else {
         throw new NotFoundError('Пользователь не найден');
       }

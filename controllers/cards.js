@@ -13,7 +13,7 @@ module.exports.getCards = (req, res) => {
       { path: 'likes', model: 'user' },
       { path: 'owner', model: 'user' },
     ])
-    .then((cards) => res.send({ data: cards }))
+    .then((cards) => res.send(cards))
     .catch((err) => handleErrors(err, res));
 };
 
@@ -23,7 +23,7 @@ module.exports.createCard = (req, res) => {
   const owner = req.user;
   Card.create({ name, link, owner })
     .then((card) => card.populate('owner'))
-    .then((card) => res.status(HTTP_STATUS_CREATED).send({ data: card }))
+    .then((card) => res.status(HTTP_STATUS_CREATED).send(card))
     .catch((err) => handleErrors(err, res));
 };
 
@@ -46,7 +46,7 @@ module.exports.deleteCard = (req, res) => {
         .populate([
           { path: 'owner', model: 'user' },
         ])
-        .then((deletedCard) => { res.send({ data: deletedCard }); });
+        .then((deletedCard) => { res.send(deletedCard); });
     })
     .catch((err) => handleErrors(err, res));
 };
@@ -64,7 +64,7 @@ module.exports.likeCard = (req, res) => {
     ])
     .then((card) => {
       if (card) {
-        res.send({ data: card });
+        res.send(card);
       } else {
         throw new NotFoundError('Карточка не найдена');
       }
@@ -85,7 +85,7 @@ module.exports.dislikeCard = (req, res) => {
     ])
     .then((card) => {
       if (card) {
-        res.send({ data: card });
+        res.send(card);
       } else {
         throw new NotFoundError('Карточка не найдена');
       }

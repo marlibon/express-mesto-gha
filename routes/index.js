@@ -15,7 +15,6 @@ router.post('/signup', validateRegister, createUser);
 router.get('/signout', logout);
 
 router.use(auth);
-
 router.use('/users', userRoutes);
 router.use('/cards', cardRoutes);
 router.use('*', (req, res) => {
