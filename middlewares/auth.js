@@ -1,8 +1,8 @@
 const jwt = require('jsonwebtoken');
-const { JWT_CODE } = require('../utils/constants');
+const { JWT_SECRET } = require('../config');
 
 module.exports = (req, res, next) => {
-  const tokenLocalStorage = req?.headers?.authorization?.split(' ')[1]
+  const tokenLocalStorage = req.headers.authorization?.split(' ')[1]
   const token = req.cookies.token || tokenLocalStorage;
   if (!token) {
     return res
@@ -13,7 +13,7 @@ module.exports = (req, res, next) => {
   let payload;
 
   try {
-    payload = jwt.verify(token, JWT_CODE);
+    payload = jwt.verify(token, JWT_SECRET);
   } catch (err) {
     return res
       .status(401)

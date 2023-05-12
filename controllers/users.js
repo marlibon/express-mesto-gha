@@ -6,7 +6,7 @@ const {
   HTTP_STATUS_CREATED,
   NotFoundError,
 } = require('../utils/handleErrors');
-const { JWT_CODE } = require('../utils/constants');
+const { JWT_SECRET } = require('../config');
 
 module.exports.getCurrentUserData = (req, res) => {
   const { _id } = req.user;
@@ -59,7 +59,7 @@ module.exports.login = (req, res) => {
   const { email, password } = req.body;
   User.findUserByCredentials(email, password)
     .then((user) => {
-      const token = jwt.sign({ _id: user._id }, JWT_CODE, { expiresIn: '7d' });
+      const token = jwt.sign({ _id: user._id }, JWT_SECRET, { expiresIn: '7d' });
       res
         .cookie('token', token, {
           maxAge: 7 * 24 * 60 * 60 * 1000, // 7дней
